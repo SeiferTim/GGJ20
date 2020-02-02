@@ -22,6 +22,8 @@ class ShipPart extends FlxSprite
     {
         depth = Depth;
         animation.frameIndex = Frame;
+        drawFrame();
+        updateHitbox();
         centerOffsets();
         reset(X - (width / 2), Y - (height / 2));
         // angle = Angle;

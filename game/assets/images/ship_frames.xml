@@ -4,5 +4,12 @@
 	Created with ShoeBox
 	http://renderhjs.net/shoebox/
 	-->
-	<SubTexture name="outline_01.png"	x="0"	y="0"	width="172"	height="102" frameX="-0" frameY="-0" frameWidth="172" frameHeight="102"/>
+	<SubTexture name="outline_01.png"	x="0"	y="100"	width="198"	height="99" frameX="-0" frameY="-0" frameWidth="198" frameHeight="99"/>
+	<SubTexture name="outline_02.png"	x="0"	y="313"	width="173"	height="112" frameX="-0" frameY="-0" frameWidth="173" frameHeight="112"/>
+	<SubTexture name="outline_03.png"	x="338"	y="280"	width="84"	height="144" frameX="-0" frameY="-0" frameWidth="84" frameHeight="144"/>
+	<SubTexture name="outline_04.png"	x="174"	y="200"	width="163"	height="134" frameX="-0" frameY="-0" frameWidth="163" frameHeight="134"/>
+	<SubTexture name="outline_05.png"	x="199"	y="0"	width="162"	height="134" frameX="-0" frameY="-0" frameWidth="163" frameHeight="134"/>
+	<SubTexture name="outline_06.png"	x="338"	y="135"	width="84"	height="144" frameX="-0" frameY="-0" frameWidth="84" frameHeight="144"/>
+	<SubTexture name="outline_07.png"	x="0"	y="200"	width="173"	height="112" frameX="-0" frameY="-0" frameWidth="173" frameHeight="112"/>
+	<SubTexture name="outline_08.png"	x="0"	y="0"	width="198"	height="99" frameX="-0" frameY="-0" frameWidth="198" frameHeight="99"/>
 </TextureAtlas>

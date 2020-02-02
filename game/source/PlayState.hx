@@ -1,13 +1,12 @@
 package;
 
+import flixel.tweens.FlxTween;
+import flixel.util.FlxAxes;
+import flixel.tweens.FlxEase;
 import flixel.text.FlxText;
-import flixel.text.FlxText;
-import axollib.GraphicsCache;
 import openfl.display.BitmapData;
-import flixel.FlxObject;
 import flixel.group.FlxGroup;
 import flixel.math.FlxAngle;
-import haxe.display.Position;
 import flixel.math.FlxMath;
 import flixel.input.actions.FlxAction.FlxActionAnalog;
 import flixel.input.actions.FlxAction.FlxActionDigital;
@@ -35,6 +34,8 @@ class PlayState extends FlxState
 {
     private var frequency:Float = 100.0;
     private var damping:Float = 100.0;
+
+    private final HAND_SPEED:Float = 800;
 
     private var leftNode:FlxPoint;
     private var rightNode:FlxPoint;
@@ -99,7 +100,21 @@ class PlayState extends FlxState
     private var gameTime:Float;
 
     private var timerText:FlxText;
-    private var maxTime:Float = (1 * 60 * 1000);
+    private var maxTime:Float = (.75 * 60 * 1000);
+
+    private var startText:FlxText;
+    private var startBack:FlxSprite;
+
+    private var paused:Bool = true;
+
+    private var totalScore:Int = 0;
+    private var totalText:FlxText;
+
+    private var scoring:Bool = false;
+    private var tmpScore:Int = 0;
+
+    private var minScore:Int = 50;
+    private var readyForReplay:Bool = false;
 
     override public function create():Void
     {
@@ -119,21 +134,134 @@ class PlayState extends FlxState
 
         createBot();
 
-        addShip();
-
-        scoreText = new FlxText(0, 10, 0, "100%", 24);
+        scoreText = new FlxText(0, 10, 0, "100% / 100%", 26);
         scoreText.alignment = FlxTextAlign.RIGHT;
         scoreText.fieldWidth = scoreText.width;
         scoreText.autoSize = false;
         scoreText.x = FlxG.width - scoreText.width;
+        scoreText.text = '0% / $minScore%';
         add(scoreText);
 
-        timerText = new FlxText(10, 10, 0, "", 24);
+        timerText = new FlxText(10, 10, 0, "", 26);
         add(timerText);
+
+        totalText = new FlxText(10, 0, 0, "0", 26);
+        totalText.y = FlxG.height - totalText.height - 10;
+        add(totalText);
+
+        startBack = new FlxSprite();
+        startBack.makeGraphic(FlxG.width + 50, Std.int(FlxG.height * .2), 0x66000000);
+        startBack.x = FlxG.width - 10;
+        startBack.screenCenter(FlxAxes.Y);
+        add(startBack);
+
+        startText = new FlxText(0, 0, 0, "3", 64);
+        startText.screenCenter(FlxAxes.XY);
+        startText.scale.set(.01, .01);
+        startText.alpha = 0;
+        add(startText);
+
+        FlxTween.tween(startBack, {x: (FlxG.width / 2) - (startBack.width / 2)}, .2, {
+            type: FlxTweenType.ONESHOT,
+            ease: FlxEase.backOut,
+            onComplete: function(_)
+            {
+                FlxTween.tween(startText, {alpha: 1}, .2);
+                FlxTween.tween(startText.scale, {x: 1, y: 1}, .4, {
+                    type: FlxTweenType.ONESHOT,
+                    ease: FlxEase.backOut,
+                    onComplete: function(_)
+                    {
+                        FlxTween.tween(startText, {alpha: 0}, .2, {type: FlxTweenType.ONESHOT, startDelay: .4});
+                        FlxTween.tween(startText.scale, {x: 2, y: 2}, .4, {
+                            type: FlxTweenType.ONESHOT,
+                            startDelay: .2,
+                            onComplete: function(_)
+                            {
+                                startText.scale.set(.01, .01);
+                                startText.text = "2";
+                                startText.screenCenter(FlxAxes.XY);
+                                FlxTween.tween(startText, {alpha: 1}, .2);
+                                FlxTween.tween(startText.scale, {x: 1, y: 1}, .4, {
+                                    type: FlxTweenType.ONESHOT,
+                                    ease: FlxEase.backOut,
+                                    onComplete: function(_)
+                                    {
+                                        FlxTween.tween(startText, {alpha: 0}, .2, {type: FlxTweenType.ONESHOT, startDelay: .4});
+                                        FlxTween.tween(startText.scale, {x: 2, y: 2}, .4, {
+                                            type: FlxTweenType.ONESHOT,
+                                            startDelay: .2,
+                                            onComplete: function(_)
+                                            {
+                                                startText.scale.set(.01, .01);
+                                                startText.text = "1";
+                                                startText.screenCenter(FlxAxes.XY);
+                                                FlxTween.tween(startText, {alpha: 1}, .2);
+                                                FlxTween.tween(startText.scale, {x: 1, y: 1}, .4, {
+                                                    type: FlxTweenType.ONESHOT,
+                                                    ease: FlxEase.backOut,
+                                                    onComplete: function(_)
+                                                    {
+                                                        FlxTween.tween(startText, {alpha: 0}, .2, {type: FlxTweenType.ONESHOT, startDelay: .4});
+                                                        FlxTween.tween(startText.scale, {x: 2, y: 2}, .4, {
+                                                            type: FlxTweenType.ONESHOT,
+                                                            startDelay: .2,
+                                                            onComplete: function(_)
+                                                            {
+                                                                startText.scale.set(.01, .01);
+                                                                startText.text = "START!";
+                                                                startText.screenCenter(FlxAxes.XY);
+                                                                FlxTween.tween(startText, {alpha: 1}, .2);
+                                                                FlxTween.tween(startText.scale, {x: 1, y: 1}, .4, {
+                                                                    type: FlxTweenType.ONESHOT,
+                                                                    ease: FlxEase.backOut,
+                                                                    onComplete: function(_)
+                                                                    {
+                                                                        FlxTween.tween(startText, {alpha: 0}, .2,
+                                                                            {type: FlxTweenType.ONESHOT, startDelay: .4});
+                                                                        FlxTween.tween(startText.scale, {x: 2, y: 2}, .4, {
+                                                                            type: FlxTweenType.ONESHOT,
+                                                                            startDelay: .2,
+                                                                            onComplete: function(_)
+                                                                            {
+                                                                                startText.kill();
+                                                                                FlxTween.tween(startBack, {x: -startBack.width}, .2, {
+                                                                                    type: FlxTweenType.ONESHOT,
+                                                                                    ease: FlxEase.backIn,
+                                                                                    onComplete: function(_)
+                                                                                    {
+                                                                                        startBack.kill();
+                                                                                        startGame();
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                });
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
 
         FlxG.sound.playMusic(AssetPaths.Process_boogie__ogg, .5, true);
 
         super.create();
+    }
+
+    private function startGame():Void
+    {
+        paused = false;
+        addShip();
     }
 
     private function addShip():Void
@@ -161,12 +289,13 @@ class PlayState extends FlxState
             frameIndex = FlxG.random.int(0, frame.animation.frames - 1);
             angle = FlxG.random.int(0, 4) * 90;
 
-            frame.spawn(X, 0, angle, frameIndex);
+            frame.spawn(0, 0, angle, frameIndex);
             part.spawn(FlxG.random.int(Std.int(FlxG.width * .33), Std.int(FlxG.width * .66)), (FlxG.height / 2) + FlxG.random.int(-40, 60), angle, frameIndex,
                 i);
             shipFrames.add(frame);
             shipParts.add(part);
 
+            frame.x = X;
             frame.y = 100 - (frame.height / 2);
 
             X += Std.int(frame.width);
@@ -189,16 +318,21 @@ class PlayState extends FlxState
 
         for (i in 0...shipFrames.members.length)
         {
+            if (!(shipFrames.members[i].alive && shipParts.members[i].alive))
+                continue;
+
             tmpF = shipFrames.members[i];
 
             tmpP = shipParts.members[i];
-            for (x in 0...tmpP.pixels.width)
+
+            tmpP.drawFrame();
+            for (x in 0...tmpP.framePixels.width)
             {
-                for (y in 0...tmpP.pixels.height)
+                for (y in 0...tmpP.framePixels.height)
                 {
-                    if (tmpP.pixels.getPixel32(x, y) != 0x0)
+                    if (tmpP.framePixels.getPixel32(x, y) != 0x0)
                     {
-                        score_key.setPixel32(Std.int(x + tmpF.x + (tmpF.width / 2)), Std.int(y + tmpF.y - Y), FlxColor.WHITE);
+                        score_key.setPixel32(Std.int(x + tmpF.x), Std.int(y + tmpF.y - Y), FlxColor.WHITE);
                     }
                 }
             }
@@ -464,22 +598,178 @@ class PlayState extends FlxState
 
     override public function update(elapsed:Float):Void
     {
-        doMovement(elapsed);
+        if (!paused)
+        {
+            doMovement(elapsed);
 
-        updateGameTime(elapsed);
+            updateGameTime(elapsed);
+        }
+        else if (scoring)
+        {
+            scoring = false;
+            var f:ShipFrame;
+            var p:ShipPart;
+            for (i in 0...shipParts.members.length)
+            {
+                p = shipParts.members[i];
+                f = shipFrames.members[i];
+
+                FlxTween.tween(p, {y: -100}, .5, {
+                    type: FlxTweenType.ONESHOT,
+                    ease: FlxEase.backIn,
+                    startDelay: .2 * i,
+                    onComplete: function(_)
+                    {
+                        p.kill();
+                    }
+                });
+                FlxTween.tween(f, {alpha: 0}, .1, {
+                    type: FlxTweenType.ONESHOT,
+                    ease: FlxEase.sineOut,
+                    startDelay: 1,
+                    onComplete: i != 0 ? null : function(_)
+                    {
+                        f.kill();
+                        var gameOver:Bool = false;
+                        if (tmpScore < minScore)
+                        {
+                            gameOver = true;
+                        }
+
+                        totalScore += tmpScore * 77;
+                        totalText.text = Std.string(totalScore);
+                        if (gameOver)
+                        {
+                            gameOverStart();
+                        }
+                        else
+                        {
+                            shipParts.clear();
+                            shipFrames.clear();
+                            minScore = FlxMath.minInt(100, minScore + 2);
+                            maxTime += 10000;
+                            addShip();
+                            paused = false;
+                        }
+                        scoreText.text = '0% / $minScore%';
+                    }
+                });
+            }
+        }
+        else if (readyForReplay)
+        {
+            if (FlxG.keys.anyJustPressed([ANY]) || FlxG.gamepads.anyButton())
+                FlxG.resetState();
+        }
 
         super.update(elapsed);
+    }
+
+    private function gameOverStart():Void
+    {
+        var gameOverBack:FlxSprite;
+        var gameOverText:FlxText;
+        var gameOverScore:FlxText;
+        var gameOverAgain:FlxText;
+
+        gameOverBack = new FlxSprite();
+        gameOverBack.makeGraphic(FlxG.width, FlxG.height, 0x66000000);
+        gameOverBack.alpha = 0;
+        add(gameOverBack);
+
+        gameOverText = new FlxText(0, 0, 0, "GAME OVER", 48);
+        gameOverText.screenCenter(FlxAxes.XY);
+        gameOverText.y -= gameOverText.height + 10;
+        gameOverText.alpha = 0;
+        add(gameOverText);
+
+        gameOverScore = new FlxText(0, 0, 0, 'Score: $totalScore', 26);
+        gameOverScore.screenCenter(FlxAxes.X);
+        gameOverScore.y = (FlxG.height / 2) + 10;
+        gameOverScore.alpha = 0;
+        add(gameOverScore);
+
+        gameOverAgain = new FlxText(0, 0, 0, "Press Any Button to Play Again", 26);
+        gameOverAgain.screenCenter(FlxAxes.X);
+        gameOverAgain.y = FlxG.height - gameOverAgain.height - 10;
+        gameOverAgain.alpha = 0;
+        add(gameOverAgain);
+
+        FlxTween.tween(gameOverBack, {alpha: 1}, .33, {
+            type: FlxTweenType.ONESHOT,
+            ease: FlxEase.sineOut,
+            onComplete: function(_)
+            {
+                FlxTween.tween(gameOverText, {alpha: 1}, .2, {
+                    type: FlxTweenType.ONESHOT,
+                    ease: FlxEase.sineOut,
+                    startDelay: .1,
+                    onComplete: function(_)
+                    {
+                        FlxTween.tween(gameOverScore, {alpha: 1}, .2, {
+                            type: FlxTweenType.ONESHOT,
+                            ease: FlxEase.sineOut,
+                            startDelay: .1,
+                            onComplete: function(_)
+                            {
+                                FlxTween.tween(gameOverAgain, {alpha: 1}, .2, {
+                                    type: FlxTweenType.ONESHOT,
+                                    ease: FlxEase.sineOut,
+                                    startDelay: .1,
+                                    onComplete: function(_)
+                                    {
+                                        readyForReplay = true;
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 
     private function updateGameTime(elapsed:Float):Void
     {
         gameTime += elapsed;
-        var d = DateTools.parse(maxTime - (gameTime * 1000));
-        timerText.text = Std.string(d.minutes)
-            + ":"
-            + Std.string(d.seconds)
-            + "."
-            + StringTools.rpad(Std.string(Std.int(d.ms)), "0", 4).substr(0, 4);
+        if (gameTime * 1000 >= maxTime)
+        {
+            gameTime = maxTime;
+            paused = true;
+            timerText.text = "00:00.0000";
+            gameEnd();
+        }
+        else
+        {
+            var d = DateTools.parse(maxTime - (gameTime * 1000));
+            timerText.text = StringTools.lpad(Std.string(d.minutes), "0", 2)
+                + ":"
+                + StringTools.lpad(Std.string(d.seconds), "0", 2)
+                + "."
+                + StringTools.rpad(Std.string(Std.int(d.ms)), "0", 4).substr(0, 4);
+        }
+    }
+
+    public function gameEnd():Void
+    {
+        scoring = true;
+
+        leftHand.handState = OPEN;
+        if (l_heldPiece != null)
+        {
+            l_heldPiece.y = FlxMath.bound(l_heldPiece.y, 2, FlxG.height - l_heldPiece.height - 2);
+            l_heldPiece.x = FlxMath.bound(l_heldPiece.x, 2, FlxG.width - l_heldPiece.width - 2);
+        }
+        l_heldPiece = null;
+
+        rightHand.handState = OPEN;
+        if (r_heldPiece != null)
+        {
+            r_heldPiece.y = FlxMath.bound(r_heldPiece.y, 2, FlxG.height - r_heldPiece.height - 2);
+            r_heldPiece.x = FlxMath.bound(r_heldPiece.x, 2, FlxG.width - r_heldPiece.width - 2);
+        }
+        r_heldPiece = null;
+        checkScore();
     }
 
     private function checkScore():Void
@@ -489,15 +779,16 @@ class PlayState extends FlxState
         for (i in 0...shipParts.members.length)
         {
             part = shipParts.members[i];
-            for (x in 0...part.pixels.width)
+            part.drawFrame();
+            for (x in 0...part.framePixels.width)
             {
                 if (part.x + x >= scorePos.x && part.x + x <= scorePos.x + score_key.width)
                 {
-                    for (y in 0...part.pixels.height)
+                    for (y in 0...part.framePixels.height)
                     {
                         if (part.y + y >= scorePos.y && part.y + y <= scorePos.y + score_key.height)
                         {
-                            if (part.pixels.getPixel32(x, y) != 0x0)
+                            if (part.framePixels.getPixel32(x, y) != 0x0)
                             {
                                 score.setPixel32(Std.int(part.x + x - scorePos.x), Std.int(part.y + y - scorePos.y), FlxColor.WHITE);
                             }
@@ -506,7 +797,6 @@ class PlayState extends FlxState
                 }
             }
         }
-        FlxG.bitmapLog.add(score);
 
         var score_amount:Int = 0;
         var score_min:Int = 0;
@@ -524,8 +814,10 @@ class PlayState extends FlxState
                 }
             }
         }
+        tmpScore = Std.int(100 * (score_amount / score_min));
+        scoreText.text = Std.string(tmpScore) + '% / $minScore%';
 
-        scoreText.text = Std.string(Std.int(100 * (score_amount / score_min))) + "%";
+        FlxG.bitmapLog.add(score);
     }
 
     private function doMovement(elapsed:Float):Void
@@ -533,6 +825,78 @@ class PlayState extends FlxState
         var xChange:Int = 0;
         var yChange:Int = 0;
         var a:Int = 0;
+
+        var highest:Int = -1;
+        var dropped:Bool = false;
+
+        if (l_close.triggered)
+        {
+            leftHand.handState = CLOSED;
+            for (i in shipParts)
+            {
+                if (i.overlaps(leftHand) && i.depth > highest && i != r_heldPiece)
+                {
+                    if (FlxG.pixelPerfectOverlap(i, leftHand))
+                    {
+                        l_heldPiece = i;
+                        l_heldPos = FlxPoint.get(i.x - leftHand.x, i.y - leftHand.y);
+                    }
+                }
+            }
+        }
+        else if (l_open.triggered)
+        {
+            leftHand.handState = OPEN;
+            if (l_heldPiece != null)
+            {
+                dropped = true;
+                l_heldPiece.y = FlxMath.bound(l_heldPiece.y, 2, FlxG.height - l_heldPiece.height - 2);
+                l_heldPiece.x = FlxMath.bound(l_heldPiece.x, 2, FlxG.width - l_heldPiece.width - 2);
+            }
+            l_heldPiece = null;
+        }
+
+        highest = -1;
+        if (r_close.triggered)
+        {
+            rightHand.handState = CLOSED;
+            for (i in shipParts)
+            {
+                if (i.overlaps(rightHand) && i.depth > highest && i != l_heldPiece)
+                {
+                    if (FlxG.pixelPerfectOverlap(i, rightHand))
+                    {
+                        r_heldPiece = i;
+                        r_heldPos = FlxPoint.get(i.x - rightHand.x, i.y - rightHand.y);
+                    }
+                }
+            }
+        }
+        else if (r_open.triggered)
+        {
+            rightHand.handState = OPEN;
+            if (r_heldPiece != null)
+            {
+                dropped = true;
+                r_heldPiece.y = FlxMath.bound(r_heldPiece.y, 2, FlxG.height - r_heldPiece.height - 2);
+                r_heldPiece.x = FlxMath.bound(r_heldPiece.x, 2, FlxG.width - r_heldPiece.width - 2);
+            }
+            r_heldPiece = null;
+        }
+
+        if (dropped)
+            checkScore();
+
+        if (l_heldPiece != null)
+        {
+            l_heldPiece.x = leftHand.x + l_heldPos.x;
+            l_heldPiece.y = leftHand.y + l_heldPos.y;
+        }
+        if (r_heldPiece != null)
+        {
+            r_heldPiece.x = rightHand.x + r_heldPos.x;
+            r_heldPiece.y = rightHand.y + r_heldPos.y;
+        }
 
         if (l_left.triggered && !l_right.triggered)
         {
@@ -554,8 +918,8 @@ class PlayState extends FlxState
         }
         if (xChange != 0 || yChange != 0)
         {
-            leftPull.body.position.x += 500 * elapsed * xChange;
-            leftPull.body.position.y += 500 * elapsed * yChange;
+            leftPull.body.position.x += HAND_SPEED * elapsed * xChange * ((xChange != 0 && yChange != 0) ? .707 : 1);
+            leftPull.body.position.y += HAND_SPEED * elapsed * yChange * ((xChange != 0 && yChange != 0) ? .707 : 1);
 
             if (xChange == 1)
             {
@@ -582,7 +946,8 @@ class PlayState extends FlxState
                 else if (yChange == -1)
                     a = 0;
             }
-            leftHand.body.rotation = FlxAngle.TO_RAD * a;
+            if (leftHand.handState == OPEN)
+                leftHand.body.rotation = FlxAngle.TO_RAD * a;
 
             leftPull.body.position.x = FlxMath.bound(leftPull.body.position.x, 10, FlxG.width - 10);
             leftPull.body.position.y = FlxMath.bound(leftPull.body.position.y, 10, FlxG.height - 10);
@@ -608,8 +973,8 @@ class PlayState extends FlxState
 
         if (xChange != 0 || yChange != 0)
         {
-            rightPull.body.position.x += 500 * elapsed * xChange;
-            rightPull.body.position.y += 500 * elapsed * yChange;
+            rightPull.body.position.x += HAND_SPEED * elapsed * xChange * ((xChange != 0 && yChange != 0) ? .707 : 1);
+            rightPull.body.position.y += HAND_SPEED * elapsed * yChange * ((xChange != 0 && yChange != 0) ? .707 : 1);
 
             if (xChange == 1)
             {
@@ -636,74 +1001,12 @@ class PlayState extends FlxState
                 else if (yChange == -1)
                     a = 0;
             }
-            rightHand.body.rotation = FlxAngle.TO_RAD * a;
+
+            if (rightHand.handState == OPEN)
+                rightHand.body.rotation = FlxAngle.TO_RAD * a;
 
             rightPull.body.position.x = FlxMath.bound(rightPull.body.position.x, 10, FlxG.width - 10);
             rightPull.body.position.y = FlxMath.bound(rightPull.body.position.y, 10, FlxG.height - 10);
-        }
-
-        var highest:Int = -1;
-        var dropped:Bool = false;
-
-        if (l_close.triggered)
-        {
-            leftHand.handState = CLOSED;
-            for (i in shipParts)
-            {
-                if (i.overlaps(leftHand) && i.depth > highest && i != r_heldPiece)
-                {
-                    if (FlxG.pixelPerfectOverlap(i, leftHand))
-                    {
-                        l_heldPiece = i;
-                        l_heldPos = FlxPoint.get(i.x - leftHand.x, i.y - leftHand.y);
-                    }
-                }
-            }
-        }
-        else if (l_open.triggered)
-        {
-            leftHand.handState = OPEN;
-            if (l_heldPiece != null)
-                dropped = true;
-            l_heldPiece = null;
-        }
-
-        highest = -1;
-        if (r_close.triggered)
-        {
-            rightHand.handState = CLOSED;
-            for (i in shipParts)
-            {
-                if (i.overlaps(rightHand) && i.depth > highest && i != l_heldPiece)
-                {
-                    if (FlxG.pixelPerfectOverlap(i, rightHand))
-                    {
-                        r_heldPiece = i;
-                        r_heldPos = FlxPoint.get(i.x - rightHand.x, i.y - rightHand.y);
-                    }
-                }
-            }
-        }
-        else if (r_open.triggered)
-        {
-            rightHand.handState = OPEN;
-            if (r_heldPiece != null)
-                dropped = true;
-            r_heldPiece = null;
-        }
-
-        if (dropped)
-            checkScore();
-
-        if (l_heldPiece != null)
-        {
-            l_heldPiece.x = leftHand.x + l_heldPos.x;
-            l_heldPiece.y = leftHand.y + l_heldPos.y;
-        }
-        if (r_heldPiece != null)
-        {
-            r_heldPiece.x = rightHand.x + r_heldPos.x;
-            r_heldPiece.y = rightHand.y + r_heldPos.y;
         }
     }
 

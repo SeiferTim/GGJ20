@@ -19,6 +19,8 @@ class ShipFrame extends FlxSprite
     public function spawn(X:Float, Y:Float, Angle:Float, Frame:Int):Void
     {
         animation.frameIndex = Frame;
+        drawFrame();
+        updateHitbox();
         centerOffsets();
         reset(X, Y);
     }
